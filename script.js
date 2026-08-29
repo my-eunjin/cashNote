@@ -606,6 +606,35 @@ function restoreData(e) {
     reader.readAsText(file);
 }
 
+/* ===== 후원(Google Play Billing) ===== */
+const DONATE_PRODUCT_ID = 'support_coffee'; // Play Console 관리형 제품(소모성) ID와 반드시 일치해야 함
+
+async function donateSupport() {
+    if (!('getDigitalGoodsService' in window)) {
+        alert('후원 결제는 안드로이드 앱(플레이스토어 설치 버전)에서만 이용할 수 있어요.\n항상 응원해주셔서 감사합니다 🙏');
+        return;
+    }
+    try {
+        const service = await window.getDigitalGoodsService('https://play.google.com/billing');
+        const details = await service.getDetails([DONATE_PRODUCT_ID]);
+        if (!details.length) {
+            alert('후원 상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
+        const request = new PaymentRequest(
+            [{ supportedMethods: 'https://play.google.com/billing', data: { sku: DONATE_PRODUCT_ID } }]
+        );
+        const response = await request.show();
+        await response.complete('success');
+        await service.consume(response.details.purchaseToken);
+        alert('☕ 후원해주셔서 진심으로 감사합니다!');
+    } catch (err) {
+        if (err && err.name === 'AbortError') return; // 사용자가 결제창을 취소함
+        console.error(err);
+        alert('결제 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+}
+
 renderAll();
 
 if ('serviceWorker' in navigator) {
