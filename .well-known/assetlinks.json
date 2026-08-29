@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.my_eunjin.twa",
+    "sha256_cert_fingerprints": ["EA:F5:50:1E:51:C1:9B:4D:F5:6B:4B:93:23:DD:9B:82:BB:40:D5:10:81:05:20:2A:8B:96:37:16:FB:8D:0A:86"]
+  }
+}]
