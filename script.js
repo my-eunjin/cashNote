@@ -555,4 +555,55 @@ function clearAll() {
     }
 }
 
+/* ===== 백업 / 복원 ===== */
+function backupData() {
+    const payload = {
+        app: 'cashNote-backup',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        userEntries, userBudgets, userRecurring
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const pad = n => String(n).padStart(2, '0');
+    const t = new Date();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `가계부일기_백업_${t.getFullYear()}${pad(t.getMonth() + 1)}${pad(t.getDate())}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function restoreData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+        e.target.value = '';
+        let data;
+        try {
+            data = JSON.parse(ev.target.result);
+        } catch (err) {
+            alert('올바른 백업 파일이 아닙니다.');
+            return;
+        }
+        if (!data || typeof data !== 'object' || data.app !== 'cashNote-backup') {
+            alert('올바른 백업 파일이 아닙니다.');
+            return;
+        }
+        if (!confirm('백업 파일을 불러오면 이 기기의 현재 기록이 백업 파일 내용으로 모두 대체됩니다. 계속할까요?')) return;
+        userEntries = data.userEntries || {};
+        userBudgets = data.userBudgets || {};
+        userRecurring = data.userRecurring || [];
+        localStorage.setItem('userEntries', JSON.stringify(userEntries));
+        localStorage.setItem('userBudgets', JSON.stringify(userBudgets));
+        localStorage.setItem('userRecurring', JSON.stringify(userRecurring));
+        renderAll();
+        alert('✅ 백업 파일을 불러왔습니다!');
+    };
+    reader.readAsText(file);
+}
+
 renderAll();

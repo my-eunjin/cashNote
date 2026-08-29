@@ -46,6 +46,11 @@
             <button class="dash-tab active" id="tabAll" onclick="switchFilter('all')">📊 전체보기</button>
             <button class="dash-tab" id="tabLedger" onclick="switchFilter('ledger')">💰 가계부</button>
             <button class="dash-tab" id="tabDiary" onclick="switchFilter('diary')">📖 일기</button>
+            <button class="tab-icon-btn" onclick="backupData()" title="백업 파일로 저장">💾 백업</button>
+            <button class="tab-icon-btn" onclick="document.getElementById('restoreFileInput').click()"
+                title="백업 파일 불러오기">📥 복원</button>
+            <input type="file" id="restoreFileInput" accept="application/json" style="display:none"
+                onchange="restoreData(event)">
             <button class="tab-reset-btn" onclick="clearAll()">초기화</button>
         </div>
 

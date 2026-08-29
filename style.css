@@ -219,8 +219,35 @@ body {
     border-radius: 3px 3px 0 0;
 }
 
-.tab-reset-btn {
+.tab-icon-btn {
     margin-left: auto;
+    align-self: center;
+    background: var(--indigo-50);
+    color: var(--indigo-600);
+    border: 1px solid #C7D2FE;
+    padding: 7px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tab-icon-btn + .tab-icon-btn {
+    margin-left: 0;
+}
+
+.tab-icon-btn:hover {
+    background: var(--indigo-600);
+    color: white;
+}
+
+.tab-reset-btn {
     align-self: center;
     background: var(--coral-500);
     color: white;
@@ -231,6 +258,7 @@ body {
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
+    flex-shrink: 0;
     transition: background 0.2s;
 }
 
@@ -251,6 +279,11 @@ body {
         font-size: 12px;
         gap: 4px;
         white-space: nowrap;
+    }
+
+    .tab-icon-btn {
+        padding: 6px 8px;
+        font-size: 11px;
     }
 
     .tab-reset-btn {
