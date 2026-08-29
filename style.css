@@ -128,6 +128,58 @@ body {
     font-weight: 700;
 }
 
+@media (max-width: 586px) {
+    .dash-header {
+        flex-wrap: nowrap;
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .month-nav {
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+        gap: 4px;
+    }
+
+    .month-nav-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+
+    .month-label {
+        font-size: 13px;
+    }
+
+    .today-go-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .metrics-group {
+        flex-wrap: nowrap;
+        gap: 6px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .metric-pill {
+        padding: 5px 8px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .metric-label {
+        font-size: 9px;
+    }
+
+    .metric-val {
+        font-size: 11px;
+        white-space: normal;
+        word-break: keep-all;
+    }
+}
+
 .dash-tab-bar {
     display: flex;
     padding: 0 24px;
