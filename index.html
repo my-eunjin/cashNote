@@ -48,15 +48,33 @@
         </header>
 
         <div class="dash-tab-bar">
-            <button class="dash-tab active" id="tabAll" onclick="switchFilter('all')">📊 전체보기</button>
-            <button class="dash-tab" id="tabLedger" onclick="switchFilter('ledger')">💰 가계부</button>
-            <button class="dash-tab" id="tabDiary" onclick="switchFilter('diary')">📖 일기</button>
-            <button class="tab-icon-btn" onclick="backupData()" title="백업 파일로 저장">💾 백업</button>
-            <button class="tab-icon-btn" onclick="document.getElementById('restoreFileInput').click()"
-                title="백업 파일 불러오기">📥 복원</button>
-            <input type="file" id="restoreFileInput" accept="application/json" style="display:none"
-                onchange="restoreData(event)">
-            <button class="tab-reset-btn" onclick="clearAll()">초기화</button>
+            <div class="dash-tab-group">
+                <button class="dash-tab active" id="tabAll" onclick="switchFilter('all')">📊 전체보기</button>
+                <button class="dash-tab" id="tabLedger" onclick="switchFilter('ledger')">💰 가계부</button>
+                <button class="dash-tab" id="tabDiary" onclick="switchFilter('diary')">📖 일기</button>
+            </div>
+            <div class="dash-tab-actions">
+                <button class="tab-icon-btn" onclick="backupData()" title="백업 파일로 저장">💾 백업</button>
+                <button class="tab-icon-btn" onclick="document.getElementById('restoreFileInput').click()"
+                    title="백업 파일 불러오기">📥 복원</button>
+                <button class="tab-reset-btn" onclick="clearAll()">초기화</button>
+            </div>
+            <button class="tab-menu-toggle" id="tabMenuToggle" onclick="toggleTabMenu()" title="메뉴">☰</button>
+        </div>
+
+        <input type="file" id="restoreFileInput" accept="application/json" style="display:none"
+            onchange="restoreData(event)">
+
+        <div class="tab-menu-overlay" id="tabMenuOverlay" onclick="closeTabMenu()"></div>
+        <div class="tab-menu-drawer" id="tabMenuDrawer">
+            <div class="tab-menu-header">
+                <span>메뉴</span>
+                <button class="modal-close" onclick="closeTabMenu()">✕</button>
+            </div>
+            <button class="tab-menu-item" onclick="closeTabMenu(); backupData();">💾 백업 파일로 저장</button>
+            <button class="tab-menu-item"
+                onclick="closeTabMenu(); document.getElementById('restoreFileInput').click();">📥 백업 파일 불러오기</button>
+            <button class="tab-menu-item danger" onclick="closeTabMenu(); clearAll();">🗑️ 전체 초기화</button>
         </div>
 
         <div class="dash-body">

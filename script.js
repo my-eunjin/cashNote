@@ -125,6 +125,16 @@ function selectDate(d) { selectedDay = Number(d); timelineMode = 'selected'; doc
 function switchTimelineMode(m) { timelineMode = m; document.getElementById('modeSelected').classList.toggle('active', m === 'selected'); document.getElementById('modeAll').classList.toggle('active', m === 'all'); renderTimeline(); }
 function switchFilter(f) { activeFilter = f;['all', 'ledger', 'diary'].forEach(x => document.getElementById('tab' + x[0].toUpperCase() + x.slice(1)).classList.toggle('active', x === f)); renderTimeline(); }
 
+/* ===== 햄버거 메뉴 (593px 이하) ===== */
+function toggleTabMenu() {
+    document.getElementById('tabMenuDrawer').classList.toggle('open');
+    document.getElementById('tabMenuOverlay').classList.toggle('open');
+}
+function closeTabMenu() {
+    document.getElementById('tabMenuDrawer').classList.remove('open');
+    document.getElementById('tabMenuOverlay').classList.remove('open');
+}
+
 function renderTimeline() {
     const container = document.getElementById('timelineContainer');
     const titleEl = document.getElementById('detailTitleText');

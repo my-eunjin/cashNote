@@ -189,8 +189,23 @@ body {
     flex-wrap: wrap;
 }
 
+.dash-tab-group {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+}
+
+.dash-tab-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    overflow-x: auto;
+}
+
 .dash-tab {
-    padding: 12px 18px;
+    padding: 12px 10px;
     border: none;
     background: none;
     font-size: 13px;
@@ -220,8 +235,6 @@ body {
 }
 
 .tab-icon-btn {
-    margin-left: auto;
-    align-self: center;
     background: var(--indigo-50);
     color: var(--indigo-600);
     border: 1px solid #C7D2FE;
@@ -236,10 +249,6 @@ body {
     flex-shrink: 0;
     white-space: nowrap;
     transition: background 0.2s, color 0.2s;
-}
-
-.tab-icon-btn + .tab-icon-btn {
-    margin-left: 0;
 }
 
 .tab-icon-btn:hover {
@@ -266,12 +275,113 @@ body {
     background: #E11D48;
 }
 
+/* ===== 햄버거 메뉴 (593px 이하에서 백업/복원/초기화 대체) ===== */
+.tab-menu-toggle {
+    display: none;
+    margin-left: auto;
+    align-self: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font-size: 16px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tab-menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.tab-menu-overlay.open {
+    display: block;
+    opacity: 1;
+}
+
+.tab-menu-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(78vw, 300px);
+    background: var(--bg-surface);
+    box-shadow: -8px 0 32px rgba(15, 23, 42, 0.18);
+    z-index: 151;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+    gap: 10px;
+}
+
+.tab-menu-drawer.open {
+    transform: translateX(0);
+}
+
+.tab-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--indigo-600);
+    margin-bottom: 8px;
+}
+
+.tab-menu-item {
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: #FAFBFF;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.tab-menu-item:hover {
+    background: var(--indigo-50);
+    border-color: #C7D2FE;
+}
+
+.tab-menu-item.danger {
+    color: var(--coral-500);
+    border-color: #FECDD3;
+    background: #FFF1F2;
+}
+
+.tab-menu-item.danger:hover {
+    background: var(--coral-500);
+    color: white;
+}
+
+@media (max-width: 593px) {
+    .dash-tab-actions {
+        display: none;
+    }
+
+    .tab-menu-toggle {
+        display: flex;
+    }
+}
+
 @media (max-width: 448px) {
     .dash-tab-bar {
-        flex-wrap: nowrap;
         padding: 0 10px;
-        gap: 2px;
-        overflow-x: auto;
+        gap: 4px;
     }
 
     .dash-tab {
@@ -281,14 +391,10 @@ body {
         white-space: nowrap;
     }
 
-    .tab-icon-btn {
-        padding: 6px 8px;
-        font-size: 11px;
-    }
-
-    .tab-reset-btn {
-        padding: 6px 10px;
-        font-size: 12px;
+    .tab-menu-toggle {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
     }
 }
 
@@ -365,11 +471,11 @@ body {
         gap: 0;
     }
 
-    .cal-grid > .cal-cell:nth-child(7n+1) {
+    .cal-grid>.cal-cell:nth-child(7n+1) {
         border-left-width: 1px;
     }
 
-    .cal-grid > .cal-cell:nth-child(-n+7) {
+    .cal-grid>.cal-cell:nth-child(-n+7) {
         border-top-width: 1px;
     }
 }
@@ -845,6 +951,17 @@ body {
     background: var(--coral-500);
     color: white;
     border-color: var(--coral-500);
+}
+
+.tab-menu-header .modal-close {
+    border: none;
+    background: none;
+}
+
+.tab-menu-header .modal-close:hover {
+    background: none;
+    color: var(--coral-500);
+    border-color: transparent;
 }
 
 .modal-tabs {
