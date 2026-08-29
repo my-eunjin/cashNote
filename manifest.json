@@ -1,6 +1,6 @@
 {
-  "name": "가계부 & 일기",
-  "short_name": "가계부일기",
+  "name": "마음가계부",
+  "short_name": "마음가계부",
   "description": "가계부와 일기를 함께 기록하는 다이어리 앱",
   "start_url": "./index.html",
   "scope": "./",
