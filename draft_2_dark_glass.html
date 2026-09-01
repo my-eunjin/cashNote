@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시안 2 - 다크 글래스모피즘 가계부 & 일기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0B0F19; --glass-card: rgba(30,41,59,0.75);
+            --glass-border: rgba(255,255,255,0.12); --text-primary: #F8FAFC; --text-secondary: #94A3B8;
+            --neon-purple: #A855F7; --neon-cyan: #06B6D4; --neon-pink: #EC4899; --neon-emerald: #10B981;
+            --radius-xl: 24px; --radius-lg: 16px; --radius-md: 12px;
+            --glow-purple: 0 0 20px rgba(168,85,247,0.35); --glow-cyan: 0 0 20px rgba(6,182,212,0.35);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #030712; color: var(--text-primary); min-height: 100vh; padding: 16px; overflow-x: hidden; }
+
+        .ambient-glow-1 { position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, rgba(0,0,0,0) 70%); top: -50px; left: 5%; pointer-events: none; z-index: 0; }
+        .ambient-glow-2 { position: fixed; width: 450px; height: 450px; background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, rgba(0,0,0,0) 70%); bottom: 5%; right: 5%; pointer-events: none; z-index: 0; }
+
+        .app-layout { width: 100%; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; position: relative; z-index: 1; }
+
+        .app-header { background: var(--glass-card); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .brand-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .avatar-glow { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan)); display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: var(--glow-purple); }
+
+        .month-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .month-nav-btn { background: rgba(168,85,247,0.2); color: var(--neon-purple); border: 1px solid rgba(168,85,247,0.4); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .month-nav-btn:hover { background: rgba(168,85,247,0.5); box-shadow: var(--glow-purple); }
+        .month-label { font-size: 15px; font-weight: 700; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .today-go-btn { background: rgba(6,182,212,0.15); color: var(--neon-cyan); border: 1px solid rgba(6,182,212,0.4); padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .today-go-btn:hover { background: rgba(6,182,212,0.35); box-shadow: var(--glow-cyan); }
+
+        .glass-tab-switcher { display: flex; background: rgba(15,23,42,0.9); border: 1px solid var(--glass-border); padding: 4px; border-radius: 16px; gap: 4px; flex-wrap: wrap; }
+        .glass-tab { padding: 8px 16px; border: none; background: none; color: var(--text-secondary); font-size: 13px; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.25s ease; }
+        .glass-tab.active { background: linear-gradient(135deg, rgba(168,85,247,0.3), rgba(6,182,212,0.3)); border: 1px solid rgba(168,85,247,0.5); color: #FFF; box-shadow: 0 4px 15px rgba(168,85,247,0.25); font-weight: 700; }
+
+        .glass-overview { background: var(--glass-card); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 18px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: center; }
+        .ov-label { font-size: 12px; color: var(--text-secondary); }
+        .ov-val { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #FFF, var(--text-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .main-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 850px) { .main-grid { grid-template-columns: 1.3fr 1fr; } }
+
+        .glass-calendar-card { background: var(--glass-card); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 20px 16px; width: 100%; }
+        .cal-head-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; width: 100%; }
+
+        .cal-cell { min-width: 0; min-height: 65px; border-radius: var(--radius-md); background: rgba(255,255,255,0.03); border: 1.5px solid transparent; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box; user-select: none; }
+        .cal-cell * { pointer-events: none; }
+        @media (max-width: 480px) { .cal-cell { min-height: 52px; padding: 2px 1px; } }
+        .cal-cell:hover { border-color: rgba(168,85,247,0.6); background: rgba(168,85,247,0.15); transform: scale(1.03); }
+        .cal-cell.selected { border-color: var(--neon-cyan) !important; box-shadow: 0 0 15px var(--neon-cyan), 0 0 25px rgba(6,182,212,0.4) !important; background: rgba(6,182,212,0.25) !important; transform: scale(1.04); z-index: 5; }
+        .cal-cell.selected .cal-dnum { color: var(--neon-cyan); font-size: 14px; font-weight: 800; }
+        .cal-cell.other-month { opacity: 0.2; pointer-events: none; }
+        .cal-dnum { font-size: 12px; font-weight: 700; }
+        .cal-dot-wrap { display: flex; gap: 3px; margin-top: 4px; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; }
+        .dot.exp { background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink); }
+        .dot.inc { background: var(--neon-emerald); box-shadow: 0 0 6px var(--neon-emerald); }
+        .dot.diary { background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan); }
+        .cal-badge-text { font-size: 9px; font-weight: 700; margin-top: 2px; color: var(--neon-pink); }
+        .cal-diary-badge { font-size: 9px; color: var(--neon-cyan); background: rgba(6,182,212,0.15); padding: 1px 4px; border-radius: 4px; margin-top: 2px; font-weight: 700; }
+
+        .glass-detail-panel { background: var(--glass-card); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+        .mode-toggle-bar { display: flex; background: rgba(15,23,42,0.8); border: 1px solid var(--glass-border); padding: 3px; border-radius: 14px; gap: 4px; }
+        .mode-btn { flex: 1; padding: 8px 0; border: none; background: none; color: var(--text-secondary); font-size: 12px; font-weight: 600; border-radius: 11px; cursor: pointer; text-align: center; }
+        .mode-btn.active { background: rgba(168,85,247,0.25); color: #FFF; border: 1px solid rgba(168,85,247,0.4); font-weight: 700; }
+        .detail-title-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3); border-radius: 12px; padding: 10px 14px; }
+        .detail-title { font-size: 15px; font-weight: 800; color: var(--neon-cyan); }
+
+        .date-group-card { background: rgba(15,23,42,0.5); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 10px; }
+        .date-group-header { font-size: 13px; font-weight: 700; color: var(--neon-purple); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed var(--glass-border); display: flex; justify-content: space-between; }
+        .tx-card { background: rgba(30,41,59,0.6); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+        .tx-left { display: flex; align-items: center; gap: 10px; }
+        .tx-icon { font-size: 16px; width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
+        .tx-name { font-size: 13px; font-weight: 600; }
+        .tx-meta { font-size: 11px; color: var(--text-secondary); }
+        .tx-val { font-size: 13px; font-weight: 700; }
+        .tx-val.exp { color: var(--neon-pink); }
+        .tx-val.inc { color: var(--neon-emerald); }
+        .dark-diary-card { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); border-radius: var(--radius-md); padding: 12px; margin-top: 6px; }
+        .diary-mood-tag { background: rgba(168,85,247,0.3); color: var(--neon-purple); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 6px; }
+        .diary-body { font-size: 13px; line-height: 1.5; color: #E2E8F0; margin-bottom: 6px; }
+        .diary-tags-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .d-tag { font-size: 10px; color: var(--neon-cyan); }
+
+        /* ===== MODAL ===== */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(3,7,18,0.8); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: rgba(15,23,42,0.95); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 60px rgba(168,85,247,0.2), 0 24px 64px rgba(0,0,0,0.5); animation: slideUp 0.25s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-header { padding: 24px 24px 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .modal-close { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: rgba(236,72,153,0.2); color: var(--neon-pink); }
+
+        .modal-tabs { display: flex; margin: 16px 24px 0; background: rgba(15,23,42,0.9); border: 1px solid var(--glass-border); padding: 4px; border-radius: 14px; gap: 4px; }
+        .modal-tab { flex: 1; padding: 9px 0; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--text-secondary); border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .modal-tab.active { background: linear-gradient(135deg, rgba(168,85,247,0.3), rgba(6,182,212,0.3)); color: #FFF; border: 1px solid rgba(168,85,247,0.5); font-weight: 700; }
+
+        .modal-body { padding: 20px 24px 24px; }
+        .form-section { display: none; flex-direction: column; gap: 14px; }
+        .form-section.active { display: flex; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.5px; }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 10px 14px; border-radius: 12px;
+            border: 1.5px solid var(--glass-border);
+            font-size: 14px; color: var(--text-primary);
+            background: rgba(30,41,59,0.6); outline: none;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+        .form-select option { background: #1E293B; }
+        .form-textarea { resize: vertical; min-height: 110px; }
+
+        .type-toggle { display: flex; gap: 8px; }
+        .type-btn { flex: 1; padding: 10px 0; border-radius: 12px; border: 1.5px solid var(--glass-border); background: rgba(30,41,59,0.5); font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; color: var(--text-secondary); }
+        .type-btn.exp.active { background: rgba(236,72,153,0.2); border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 14px rgba(236,72,153,0.2); }
+        .type-btn.inc.active { background: rgba(16,185,129,0.2); border-color: var(--neon-emerald); color: var(--neon-emerald); box-shadow: 0 0 14px rgba(16,185,129,0.2); }
+
+        .mood-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+        .mood-btn { padding: 6px 12px; border-radius: 10px; border: 1.5px solid var(--glass-border); background: rgba(30,41,59,0.5); font-size: 13px; cursor: pointer; transition: all 0.2s; color: var(--text-primary); }
+        .mood-btn.active { border-color: var(--neon-purple); background: rgba(168,85,247,0.2); box-shadow: 0 0 10px rgba(168,85,247,0.2); }
+
+        .tag-input-row { display: flex; gap: 8px; }
+        .tag-input-row .form-input { flex: 1; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+        .tag-chip { background: rgba(6,182,212,0.15); color: var(--neon-cyan); border: 1px solid rgba(6,182,212,0.35); padding: 3px 10px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .tag-chip button { background: none; border: none; color: var(--neon-cyan); cursor: pointer; font-size: 13px; line-height: 1; }
+
+        .modal-footer { padding: 0 24px 24px; display: flex; gap: 10px; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(30,41,59,0.5); color: var(--text-secondary); font-size: 14px; font-weight: 700; cursor: pointer; }
+        .btn-cancel:hover { background: rgba(30,41,59,0.8); }
+        .btn-save { flex: 2; padding: 12px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan)); color: white; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(168,85,247,0.35); }
+        .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(168,85,247,0.45); }
+    </style>
+</head>
+<body>
+<div class="ambient-glow-1"></div>
+<div class="ambient-glow-2"></div>
+
+<div class="app-layout">
+    <header class="app-header">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div class="brand-title">
+                <div class="avatar-glow">✨</div>
+                <span>Cyber Log</span>
+            </div>
+            <div class="month-nav">
+                <button class="month-nav-btn" onclick="prevMonth()">◀</button>
+                <span class="month-label" id="currentYearMonthText">2026년 8월</span>
+                <button class="month-nav-btn" onclick="nextMonth()">▶</button>
+                <button class="today-go-btn" onclick="goToToday()">📍 오늘로 이동</button>
+            </div>
+        </div>
+        <div class="glass-tab-switcher">
+            <button class="glass-tab active" id="tabAll" onclick="switchFilter('all')">⚡ 가계부+일기 전체</button>
+            <button class="glass-tab" id="tabLedger" onclick="switchFilter('ledger')">💸 가계부</button>
+            <button class="glass-tab" id="tabDiary" onclick="switchFilter('diary')">🔮 일기</button>
+        </div>
+    </header>
+
+    <div class="glass-overview">
+        <div><div class="ov-label" id="ovLabelBudget">8월 예산 사용률</div><div class="ov-val">58% (₩1,540,000)</div></div>
+        <div><div class="ov-label" id="ovLabelIncome">8월 총 수입</div><div style="font-size:18px;font-weight:800;color:var(--neon-emerald);">+₩2,750,000</div></div>
+    </div>
+
+    <div class="main-grid">
+        <div class="glass-calendar-card">
+            <div class="cal-head-days">
+                <span style="color:var(--neon-pink);">SUN</span>
+                <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span>
+                <span style="color:var(--neon-cyan);">SAT</span>
+            </div>
+            <div class="cal-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="glass-detail-panel">
+            <div class="mode-toggle-bar">
+                <button class="mode-btn active" id="modeSelected" onclick="switchTimelineMode('selected')">📍 선택한 날짜</button>
+                <button class="mode-btn" id="modeAll" onclick="switchTimelineMode('all')">📜 전체 타임라인</button>
+            </div>
+            <div class="detail-title-bar">
+                <span class="detail-title" id="detailTitleText">⚡ 8월 9일 내역</span>
+                <button onclick="openModal()" style="background:linear-gradient(135deg,var(--neon-purple),var(--neon-pink));color:white;border:none;padding:7px 14px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">✏️ 새 기록 작성</button>
+            </div>
+            <div id="timelineContainer"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="writeModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span class="modal-title">✏️ 새 기록 작성</span>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-tabs">
+            <button class="modal-tab active" id="mtabLedger" onclick="switchModalTab('ledger')">💸 가계부 작성</button>
+            <button class="modal-tab" id="mtabDiary" onclick="switchModalTab('diary')">🔮 일기 작성</button>
+        </div>
+        <div class="modal-body">
+            <!-- Ledger Form -->
+            <div class="form-section active" id="formLedger">
+                <div class="form-group">
+                    <label class="form-label">수입 / 지출 구분</label>
+                    <div class="type-toggle">
+                        <button class="type-btn exp active" id="typeExp" onclick="setType('exp')">📉 지출</button>
+                        <button class="type-btn inc" id="typeInc" onclick="setType('inc')">📈 수입</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="ledgerDate"></div>
+                    <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input" type="number" id="ledgerAmount" placeholder="15000"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">카테고리</label>
+                        <select class="form-select" id="ledgerCategory">
+                            <option value="식비">🍱 식비</option><option value="교통">🚌 교통</option>
+                            <option value="문화">🎬 문화/여가</option><option value="쇼핑">🛍️ 쇼핑</option>
+                            <option value="생활">🏠 생활</option><option value="의료">💊 의료</option>
+                            <option value="수입">💰 수입</option><option value="기타">📌 기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">결제 수단</label>
+                        <select class="form-select" id="ledgerPayment">
+                            <option value="카드">💳 카드</option><option value="현금">💵 현금</option>
+                            <option value="계좌이체">🏦 계좌이체</option><option value="카카오페이">🟡 카카오페이</option>
+                            <option value="네이버페이">🟢 네이버페이</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label">내용 / 사용처</label><input class="form-input" type="text" id="ledgerTitle" placeholder="스타벅스 아이스 아메리카노"></div>
+                <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" type="text" id="ledgerMemo" placeholder="간단한 메모를 남겨보세요"></div>
+            </div>
+
+            <!-- Diary Form -->
+            <div class="form-section" id="formDiary">
+                <div class="form-group"><label class="form-label">날짜</label><input class="form-input" type="date" id="diaryDate"></div>
+                <div class="form-group">
+                    <label class="form-label">오늘의 기분</label>
+                    <div class="mood-picker">
+                        <button class="mood-btn active" onclick="setMood(this,'😊 행복')">😊 행복</button>
+                        <button class="mood-btn" onclick="setMood(this,'😌 평온')">😌 평온</button>
+                        <button class="mood-btn" onclick="setMood(this,'😢 슬픔')">😢 슬픔</button>
+                        <button class="mood-btn" onclick="setMood(this,'😤 화남')">😤 화남</button>
+                        <button class="mood-btn" onclick="setMood(this,'😴 피곤')">😴 피곤</button>
+                        <button class="mood-btn" onclick="setMood(this,'🎉 신남')">🎉 신남</button>
+                        <button class="mood-btn" onclick="setMood(this,'🤔 생각')">🤔 생각</button>
+                        <button class="mood-btn" onclick="setMood(this,'💪 의욕')">💪 의욕</button>
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label">제목 (선택)</label><input class="form-input" type="text" id="diaryTitle" placeholder="오늘의 한 줄 제목"></div>
+                <div class="form-group"><label class="form-label">일기 내용</label><textarea class="form-textarea" id="diaryContent" placeholder="오늘 있었던 일, 느꼈던 감정을 자유롭게 적어보세요 🔮"></textarea></div>
+                <div class="form-group">
+                    <label class="form-label">태그 (Enter로 추가)</label>
+                    <input class="form-input" type="text" id="tagInput" placeholder="#카페 #독서" onkeydown="addTag(event)">
+                    <div class="tag-list" id="tagList"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal()">취소</button>
+            <button class="btn-save" onclick="saveEntry()">💾 저장하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentYear = 2026, currentMonth = 8, selectedDay = 9;
+    let activeFilter = 'all', timelineMode = 'selected';
+    let selectedMood = '😊 행복', selectedType = 'exp';
+    let currentTags = [], userEntries = {};
+
+    const dayNames = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+    function getWeekdayName(y,m,d) { return dayNames[new Date(y,m-1,d).getDay()]; }
+
+    const sampleActivities = [
+        { icon:'☕', name:'아이스 라떼', meta:'카카오페이', cost:-5500, mood:'🚀 에너지', body:'네온 카페에서 시원하게.', tags:['#카페'] },
+        { icon:'🍣', name:'스시 세트', meta:'네이버페이', cost:-28000, mood:'🍣 맛있음', body:'신선한 초밥으로 즐긴 식사.', tags:['#맛집'] },
+        { icon:'🚌', name:'심야버스', meta:'교통카드', cost:-3200, mood:'🌌 야경', body:'반짝이는 도시 야경 보며 귀가.', tags:['#야경'] },
+        { icon:'📚', name:'디자인 서적', meta:'현대카드', cost:-22000, mood:'🔮 크리에이티브', body:'새 디자인 서적 구매.', tags:['#자기개발'] },
+        { icon:'🎬', name:'심야 영화', meta:'카드결제', cost:-15000, mood:'🎬 힐링', body:'몰입감 넘쳤던 심야 영화.', tags:['#영화'] }
+    ];
+
+    function getMockData(y,m,d) {
+        const key = `${y}-${m}-${d}`;
+        const base = getBaseData(y,m,d);
+        if (userEntries[key]) {
+            if (userEntries[key].ledger) base.items = [...base.items, ...userEntries[key].ledger];
+            if (userEntries[key].diary) base.diary = userEntries[key].diary;
+        }
+        return base;
+    }
+
+    function getBaseData(y,m,d) {
+        if (m===8&&d===7) return { inc:'+250k', items:[{ icon:'💰', name:'외주 대금 입금', meta:'15:00 • 계좌이체', val:'+₩250,000', type:'inc' }], diary:{ mood:'💰 보람', body:'외주 수입 입금!', tags:['#수입'] } };
+        if (m===8&&d===9) return { exp:'-34k', items:[{ icon:'☕', name:'스타벅스 라떼', meta:'14:20 • 카드', val:'-₩6,000', type:'exp' },{ icon:'🍣', name:'초밥 점심', meta:'12:30 • 네이버페이', val:'-₩28,000', type:'exp' }], diary:{ mood:'🚀 에너지', body:'주말 모임으로 완벽 충전!', tags:['#주말'] } };
+        const act = sampleActivities[(d*2+m)%sampleActivities.length];
+        const k = Math.round(Math.abs(act.cost)/1000);
+        return { exp:`-${k}k`, items:[{ icon:act.icon, name:act.name, meta:`18:00 • ${act.meta}`, val:`${act.cost.toLocaleString()}원`, type:'exp' }], diary:{ mood:act.mood, body:`${m}월 ${d}일, ${act.body}`, tags:act.tags } };
+    }
+
+    function prevMonth() { currentMonth--; if(currentMonth<1){currentMonth=12;currentYear--;} selectedDay=1; renderAll(); }
+    function nextMonth() { currentMonth++; if(currentMonth>12){currentMonth=1;currentYear++;} selectedDay=1; renderAll(); }
+    function goToToday() { currentYear=2026; currentMonth=8; selectedDay=9; renderAll(); }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid'); grid.innerHTML='';
+        const totalDays = new Date(currentYear,currentMonth,0).getDate();
+        const firstDow = new Date(currentYear,currentMonth-1,1).getDay();
+        const prevTotal = new Date(currentYear,currentMonth-1,0).getDate();
+        for(let i=firstDow-1;i>=0;i--){const c=document.createElement('div');c.className='cal-cell other-month';c.innerHTML=`<span class="cal-dnum">${prevTotal-i}</span>`;grid.appendChild(c);}
+        for(let d=1;d<=totalDays;d++){
+            const cell=document.createElement('div');
+            const dow=new Date(currentYear,currentMonth-1,d).getDay();
+            cell.className=`cal-cell ${d===selectedDay?'selected':''}`;
+            cell.setAttribute('onclick',`selectDate(${d})`);
+            const data=getMockData(currentYear,currentMonth,d);
+            let dots='',badges='';
+            if(data.exp){dots+=`<div class="dot exp"></div>`;badges+=`<div class="cal-badge-text">${data.exp}</div>`;}
+            if(data.inc)dots+=`<div class="dot inc"></div>`;
+            if(data.diary){dots+=`<div class="dot diary"></div>`;badges+=`<div class="cal-diary-badge">📖</div>`;}
+            let dnumColor='';
+            if(dow===0)dnumColor='color:var(--neon-pink);';
+            if(dow===6)dnumColor='color:var(--neon-cyan);';
+            cell.innerHTML=`<span class="cal-dnum" style="${dnumColor}">${d}</span><div class="cal-dot-wrap">${dots}</div>${badges}`;
+            grid.appendChild(cell);
+        }
+        const rem=(firstDow+totalDays)%7;
+        for(let d=1;d<=(rem===0?0:7-rem);d++){const c=document.createElement('div');c.className='cal-cell other-month';c.innerHTML=`<span class="cal-dnum">${d}</span>`;grid.appendChild(c);}
+    }
+
+    function selectDate(d){selectedDay=Number(d);timelineMode='selected';document.getElementById('modeSelected').classList.add('active');document.getElementById('modeAll').classList.remove('active');renderAll();}
+    function switchTimelineMode(m){timelineMode=m;document.getElementById('modeSelected').classList.toggle('active',m==='selected');document.getElementById('modeAll').classList.toggle('active',m==='all');renderTimeline();}
+    function switchFilter(f){activeFilter=f;['all','ledger','diary'].forEach(x=>document.getElementById('tab'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===f));renderTimeline();}
+
+    function renderTimeline(){
+        const container=document.getElementById('timelineContainer');
+        const titleEl=document.getElementById('detailTitleText');
+        const totalDays=new Date(currentYear,currentMonth,0).getDate();
+        if(timelineMode==='selected'){
+            titleEl.innerText=`⚡ ${currentMonth}월 ${selectedDay}일 (${getWeekdayName(currentYear,currentMonth,selectedDay)}) 내역`;
+            container.innerHTML=renderDayHtml(selectedDay);
+        }else{
+            titleEl.innerText=`📜 ${currentYear}년 ${currentMonth}월 전체 타임라인`;
+            let html='';
+            for(let d=1;d<=totalDays;d++){
+                const data=getMockData(currentYear,currentMonth,d);
+                html+=`<div class="date-group-card" onclick="selectDate(${d})" style="cursor:pointer;"><div class="date-group-header"><span>✨ ${currentMonth}월 ${d}일 (${getWeekdayName(currentYear,currentMonth,d)})</span><span style="font-size:11px;color:var(--neon-cyan);">${data.exp||data.inc||''}</span></div>${renderDayHtml(d)}</div>`;
+            }
+            container.innerHTML=html;
+        }
+    }
+
+    function renderDayHtml(day){
+        const data=getMockData(currentYear,currentMonth,day);
+        if(!data) return `<div style="font-size:12px;color:var(--text-secondary);text-align:center;padding:10px;">기록이 없습니다.</div>`;
+        let html='';
+        if((activeFilter==='all'||activeFilter==='ledger')&&data.items?.length>0){
+            html+=`<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">💳 가계부 내역</div>`;
+            html+=data.items.map(i=>`<div class="tx-card"><div class="tx-left"><div class="tx-icon">${i.icon}</div><div><div class="tx-name">${i.name||i.title}</div><div class="tx-meta">${i.meta||i.category||''}</div></div></div><div class="tx-val ${i.type}">${i.val||i.amount}</div></div>`).join('');
+        }
+        if((activeFilter==='all'||activeFilter==='diary')&&data.diary){
+            html+=`<div style="font-size:12px;color:var(--text-secondary);margin-top:10px;margin-bottom:6px;">🔮 감성 일기</div><div class="dark-diary-card"><div class="diary-mood-tag">${data.diary.mood}</div><div class="diary-body">"${data.diary.body||data.diary.text}"</div><div class="diary-tags-row">${(data.diary.tags||[]).map(t=>`<span class="d-tag">${t}</span>`).join(' ')}</div></div>`;
+        }
+        return html||`<div style="font-size:12px;color:var(--text-secondary);text-align:center;padding:10px;">기록이 없습니다.</div>`;
+    }
+
+    function renderAll(){
+        document.getElementById('currentYearMonthText').innerText=`${currentYear}년 ${currentMonth}월`;
+        document.getElementById('ovLabelBudget').innerText=`${currentMonth}월 예산 사용률`;
+        document.getElementById('ovLabelIncome').innerText=`${currentMonth}월 총 수입`;
+        renderCalendar(); renderTimeline();
+    }
+
+    /* Modal */
+    function openModal(){
+        document.getElementById('writeModal').classList.add('open');
+        const ds=`${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(selectedDay).padStart(2,'0')}`;
+        document.getElementById('ledgerDate').value=ds;
+        document.getElementById('diaryDate').value=ds;
+    }
+    function closeModal(){document.getElementById('writeModal').classList.remove('open');}
+    document.getElementById('writeModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+    function switchModalTab(tab){
+        document.getElementById('mtabLedger').classList.toggle('active',tab==='ledger');
+        document.getElementById('mtabDiary').classList.toggle('active',tab==='diary');
+        document.getElementById('formLedger').classList.toggle('active',tab==='ledger');
+        document.getElementById('formDiary').classList.toggle('active',tab==='diary');
+    }
+    function setType(type){selectedType=type;document.getElementById('typeExp').classList.toggle('active',type==='exp');document.getElementById('typeInc').classList.toggle('active',type==='inc');}
+    function setMood(btn,mood){selectedMood=mood;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+    function addTag(e){
+        if(e.key==='Enter'){e.preventDefault();const input=document.getElementById('tagInput');let val=input.value.trim();if(!val)return;if(!val.startsWith('#'))val='#'+val;currentTags.push(val);renderTags();input.value='';}
+    }
+    function renderTags(){document.getElementById('tagList').innerHTML=currentTags.map((t,i)=>`<span class="tag-chip">${t} <button onclick="removeTag(${i})">×</button></span>`).join('');}
+    function removeTag(i){currentTags.splice(i,1);renderTags();}
+
+    function saveEntry(){
+        const isLedger=document.getElementById('formLedger').classList.contains('active');
+        const dateStr=document.getElementById(isLedger?'ledgerDate':'diaryDate').value;
+        if(!dateStr){alert('날짜를 선택해주세요.');return;}
+        const parts=dateStr.split('-');const y=parseInt(parts[0]),m=parseInt(parts[1]),d=parseInt(parts[2]);
+        const key=`${y}-${m}-${d}`;
+        if(!userEntries[key])userEntries[key]={};
+        if(isLedger){
+            const amount=document.getElementById('ledgerAmount').value;
+            const title=document.getElementById('ledgerTitle').value;
+            if(!amount||!title){alert('금액과 내용을 입력해주세요.');return;}
+            const cat=document.getElementById('ledgerCategory').value;
+            const icons={'식비':'🍱','교통':'🚌','문화':'🎬','쇼핑':'🛍️','생활':'🏠','의료':'💊','수입':'💰','기타':'📌'};
+            const isInc=selectedType==='inc';
+            if(!userEntries[key].ledger)userEntries[key].ledger=[];
+            userEntries[key].ledger.push({icon:icons[cat]||'📌',name:title,meta:`${document.getElementById('ledgerPayment').value}`,val:`${isInc?'+':'-'}${parseInt(amount).toLocaleString()}원`,type:isInc?'inc':'exp'});
+            alert(`✅ ${m}월 ${d}일 가계부가 저장되었습니다!`);
+        }else{
+            const content=document.getElementById('diaryContent').value;
+            if(!content){alert('일기 내용을 입력해주세요.');return;}
+            userEntries[key].diary={mood:selectedMood,body:content,tags:[...currentTags]};
+            currentTags=[];renderTags();
+            alert(`✅ ${m}월 ${d}일 일기가 저장되었습니다!`);
+        }
+        closeModal();currentYear=y;currentMonth=m;selectedDay=d;timelineMode='selected';
+        document.getElementById('modeSelected').classList.add('active');document.getElementById('modeAll').classList.remove('active');
+        renderAll();
+    }
+
+    renderAll();
+</script>
+</body>
+</html>

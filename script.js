@@ -7,8 +7,9 @@ let userEntries = JSON.parse(localStorage.getItem('userEntries')) || {};
 let userBudgets = JSON.parse(localStorage.getItem('userBudgets')) || {};
 let userRecurring = JSON.parse(localStorage.getItem('userRecurring')) || [];
 let repeatOn = false;
+let editMode = null; // { type: 'ledger'|'diary', year, month, day, idx? }
 
-const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '월급': '💰', '수입': '💸', '기타': '📌' };
+const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '저축': '🐖', '적금': '📈', '주식': '📊', '월급': '💰', '수입': '💸', '기타': '📌' };
 
 const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 function getWeekdayName(y, m, d) { return dayNames[new Date(y, m - 1, d).getDay()]; }
@@ -169,12 +170,12 @@ function renderDayHtml(day) {
             const badge = i.recurringId ? `<span class="badge-repeat">🔁 매월${i.edited ? '·수정됨' : ''}</span>` : '';
             const actions = i.recurringId
                 ? `<button class="icon-btn" onclick="event.stopPropagation(); openRecurringModal('${i.recurringId}', ${day})" title="반복 항목 수정">✏️</button>`
-                : `<button class="icon-btn" onclick="event.stopPropagation(); deleteLedger(${day}, ${i._idx})" title="삭제">🗑️</button>`;
+                : `<button class="icon-btn" onclick="event.stopPropagation(); openEditLedger(${day}, ${i._idx})" title="수정">✏️</button><button class="icon-btn" onclick="event.stopPropagation(); deleteLedger(${day}, ${i._idx})" title="삭제">🗑️</button>`;
             return `<div class="entry-item"><div class="entry-left"><span class="entry-icon">${i.icon}</span><div><div class="entry-name">${i.name}${badge}</div><div class="entry-cate">${i.cate}</div></div></div><div style="display:flex;align-items:center;gap:12px;"><span class="entry-val" style="color:${i.type === 'inc' ? 'var(--emerald-500)' : 'var(--coral-500)'};">${i.val}</span>${actions}</div></div>`;
         }).join('');
     }
     if ((activeFilter === 'all' || activeFilter === 'diary') && data.diary) {
-        html += `<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-top:8px;margin-bottom:6px;">일기 내역</div><div class="diary-box"><div class="diary-box-header"><span class="diary-box-title">📝 ${currentMonth}월 ${day}일 일기</span><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;background:#FFF;padding:2px 8px;border-radius:8px;">${data.diary.mood}</span><button onclick="event.stopPropagation(); deleteDiary(${day})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-muted);" title="삭제">🗑️</button></div></div><div class="diary-box-content">"${data.diary.content || data.diary.text}"</div></div>`;
+        html += `<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-top:8px;margin-bottom:6px;">일기 내역</div><div class="diary-box"><div class="diary-box-header"><span class="diary-box-title">📝 ${currentMonth}월 ${day}일 일기</span><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;background:#FFF;padding:2px 8px;border-radius:8px;">${data.diary.mood}</span><button onclick="event.stopPropagation(); openEditDiary(${day})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-muted);" title="수정">✏️</button><button onclick="event.stopPropagation(); deleteDiary(${day})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-muted);" title="삭제">🗑️</button></div></div><div class="diary-box-content">"${data.diary.content || data.diary.text}"</div></div>`;
     }
     return html || `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px;">기록이 없습니다.</div>`;
 }
@@ -203,6 +204,107 @@ function deleteDiary(d) {
         }
     }
 }
+
+/* ===== 수정 모달 열기 ===== */
+function openEditLedger(day, idx) {
+    const key = `${currentYear}-${currentMonth}-${day}`;
+    const entry = userEntries[key] && userEntries[key].ledger && userEntries[key].ledger[idx];
+    if (!entry) return;
+
+    editMode = { type: 'ledger', year: currentYear, month: currentMonth, day, idx };
+
+    // 날짜 설정
+    const ds = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    document.getElementById('ledgerDate').value = ds;
+    document.getElementById('diaryDate').value = ds;
+    document.getElementById('modalDateHint').innerText = `${currentMonth}월 ${day}일 가계부 수정`;
+    document.querySelector('#writeModal .modal-title').innerText = '✏️ 가계부 수정';
+
+    // 가계부 폼 채우기
+    document.getElementById('ledgerAmount').value = entry.amount || '';
+    document.getElementById('ledgerTitle').value = entry.name || '';
+    document.getElementById('ledgerMemo').value = entry.memo || '';
+
+    // 결제수단 설정
+    const paymentEl = document.getElementById('ledgerPayment');
+    const payOpts = Array.from(paymentEl.options);
+    const payIdx = payOpts.findIndex(o => o.text === (entry.payment || ''));
+    paymentEl.selectedIndex = payIdx >= 0 ? payIdx : 0;
+
+    // 수입/지출 및 카테고리 설정
+    setType(entry.type || 'exp');
+    const cat = entry.cate || '';
+    if (cat) {
+        document.getElementById('ledgerCategory').value = cat;
+        const catList = CATEGORIES[entry.type || 'exp'];
+        const catItem = catList.find(c => c.value === cat);
+        if (catItem) {
+            document.getElementById('categoryTriggerText').textContent = catItem.label;
+            document.querySelectorAll('#categoryDropdown .custom-select-option').forEach(o => {
+                o.classList.toggle('selected', o.dataset.value === cat);
+            });
+        }
+    }
+
+    // 반복 초기화
+    repeatOn = false;
+    document.getElementById('repeatDuration').value = '0';
+    applyRepeatUI();
+
+    // 일기 폼 초기화
+    document.getElementById('diaryTitle').value = '';
+    document.getElementById('diaryContent').value = '';
+    document.getElementById('tagInput').value = '';
+    currentTags = [];
+    renderTags();
+    selectedMood = '😊 행복';
+    document.querySelectorAll('.mood-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+
+    switchModalTab('ledger');
+    document.getElementById('writeModal').classList.add('open');
+}
+
+function openEditDiary(day) {
+    const key = `${currentYear}-${currentMonth}-${day}`;
+    const diary = userEntries[key] && userEntries[key].diary;
+    if (!diary) return;
+
+    editMode = { type: 'diary', year: currentYear, month: currentMonth, day };
+
+    // 날짜 설정
+    const ds = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    document.getElementById('ledgerDate').value = ds;
+    document.getElementById('diaryDate').value = ds;
+    document.getElementById('modalDateHint').innerText = `${currentMonth}월 ${day}일 일기 수정`;
+    document.querySelector('#writeModal .modal-title').innerText = '✏️ 일기 수정';
+
+    // 가계부 폼 초기화
+    document.getElementById('ledgerAmount').value = '';
+    document.getElementById('ledgerTitle').value = '';
+    document.getElementById('ledgerMemo').value = '';
+    document.getElementById('ledgerPayment').selectedIndex = 0;
+    setType('exp');
+    repeatOn = false;
+    document.getElementById('repeatDuration').value = '0';
+    applyRepeatUI();
+
+    // 일기 폼 채우기
+    document.getElementById('diaryTitle').value = diary.title || '';
+    document.getElementById('diaryContent').value = diary.content || diary.text || '';
+    document.getElementById('tagInput').value = '';
+    currentTags = diary.tags ? [...diary.tags] : [];
+    renderTags();
+
+    // 기분 설정
+    selectedMood = diary.mood || '😊 행복';
+    document.querySelectorAll('.mood-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.trim() === selectedMood);
+    });
+
+    switchModalTab('diary');
+    document.getElementById('writeModal').classList.add('open');
+}
+
 
 function renderMetrics() {
     let totalExp = 0; let totalInc = 0;
@@ -293,12 +395,37 @@ function openModal() {
     document.getElementById('ledgerDate').value = ds;
     document.getElementById('diaryDate').value = ds;
     document.getElementById('modalDateHint').innerText = `${currentMonth}월 ${selectedDay}일 (${getWeekdayName(currentYear, currentMonth, selectedDay)}) 기록 추가`;
+    document.querySelector('#writeModal .modal-title').innerText = '✏️ 새 기록 작성';
+
+    // ── 가계부 폼 초기화 ──
+    document.getElementById('ledgerAmount').value = '';
+    document.getElementById('ledgerTitle').value = '';
+    document.getElementById('ledgerMemo').value = '';
+    document.getElementById('ledgerPayment').selectedIndex = 0;
+
     // 지출로 초기화 (카테고리 목록 렌더)
     setType('exp');
+
     // 반복 설정 초기화
     repeatOn = false;
     document.getElementById('repeatDuration').value = '0';
     applyRepeatUI();
+
+    // ── 일기 폼 초기화 ──
+    document.getElementById('diaryTitle').value = '';
+    document.getElementById('diaryContent').value = '';
+    document.getElementById('tagInput').value = '';
+    currentTags = [];
+    renderTags();
+
+    // 기분 초기값(😊 행복)으로 복원
+    selectedMood = '😊 행복';
+    document.querySelectorAll('.mood-btn').forEach((b, idx) => {
+        b.classList.toggle('active', idx === 0);
+    });
+
+    // 가계부 탭으로 초기화
+    switchModalTab('ledger');
 }
 
 /* ===== 매월 반복 입력 UI ===== */
@@ -323,7 +450,7 @@ function updateRepeatInfo() {
 }
 
 document.getElementById('ledgerDate').addEventListener('change', updateRepeatInfo);
-function closeModal() { document.getElementById('writeModal').classList.remove('open'); closeCategoryDropdown(); }
+function closeModal() { document.getElementById('writeModal').classList.remove('open'); closeCategoryDropdown(); editMode = null; }
 document.getElementById('writeModal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
 
 /* 커스텀 카테고리 드롭다운 */
@@ -372,6 +499,9 @@ const CATEGORIES = {
         { value: '보험료',   label: '🛡️ 보험료' },
         { value: '월세',     label: '🏢 월세' },
         { value: '관리비',   label: '🔑 관리비' },
+        { value: '저축',     label: '🐖 저축' },
+        { value: '적금',     label: '📈 적금' },
+        { value: '주식',     label: '📊 주식' },
         { value: '기타',     label: '📌 기타' },
     ],
     inc: [
@@ -438,16 +568,48 @@ function saveEntry() {
             if (Object.keys(userEntries[key]).length === 0) delete userEntries[key];
             alert(`✅ 매월 ${d}일 반복 기록이 등록되었습니다!\n(각 달의 금액은 항목의 ✏️ 버튼으로 수정할 수 있어요)`);
         } else {
-            if (!userEntries[key].ledger) userEntries[key].ledger = [];
-            userEntries[key].ledger.push({ icon: CAT_ICONS[cat] || '📌', name: title, cate: cat, val: amountToVal(num, type), amount: num, type });
-            alert(`✅ ${m}월 ${d}일 가계부가 저장되었습니다!`);
+            const newItem = { icon: CAT_ICONS[cat] || '📌', name: title, cate: cat, val: amountToVal(num, type), amount: num, type,
+                payment: document.getElementById('ledgerPayment').value,
+                memo: document.getElementById('ledgerMemo').value };
+            if (editMode && editMode.type === 'ledger') {
+                // 수정 모드: 원본 항목 제거 후 새 항목 추가
+                const origKey = `${editMode.year}-${editMode.month}-${editMode.day}`;
+                if (userEntries[origKey] && userEntries[origKey].ledger) {
+                    userEntries[origKey].ledger.splice(editMode.idx, 1);
+                    if (userEntries[origKey].ledger.length === 0) delete userEntries[origKey].ledger;
+                    if (Object.keys(userEntries[origKey]).length === 0) delete userEntries[origKey];
+                }
+                if (!userEntries[key]) userEntries[key] = {};
+                if (!userEntries[key].ledger) userEntries[key].ledger = [];
+                userEntries[key].ledger.push(newItem);
+                alert(`✅ ${m}월 ${d}일 가계부가 수정되었습니다!`);
+            } else {
+                if (!userEntries[key].ledger) userEntries[key].ledger = [];
+                userEntries[key].ledger.push(newItem);
+                alert(`✅ ${m}월 ${d}일 가계부가 저장되었습니다!`);
+            }
         }
     } else {
         const content = document.getElementById('diaryContent').value;
         if (!content) { alert('일기 내용을 입력해주세요.'); return; }
-        userEntries[key].diary = { mood: selectedMood, content, text: content };
-        currentTags = []; renderTags();
-        alert(`✅ ${m}월 ${d}일 일기가 저장되었습니다!`);
+        const diaryTitleVal = document.getElementById('diaryTitle').value;
+        const newDiary = { mood: selectedMood, title: diaryTitleVal, content, text: content, tags: [...currentTags] };
+        if (editMode && editMode.type === 'diary') {
+            // 수정 모드: 원본 일기 제거 후 새 일기 저장
+            const origKey = `${editMode.year}-${editMode.month}-${editMode.day}`;
+            if (userEntries[origKey] && userEntries[origKey].diary) {
+                delete userEntries[origKey].diary;
+                if (Object.keys(userEntries[origKey]).length === 0) delete userEntries[origKey];
+            }
+            if (!userEntries[key]) userEntries[key] = {};
+            userEntries[key].diary = newDiary;
+            currentTags = []; renderTags();
+            alert(`✅ ${m}월 ${d}일 일기가 수정되었습니다!`);
+        } else {
+            userEntries[key].diary = newDiary;
+            currentTags = []; renderTags();
+            alert(`✅ ${m}월 ${d}일 일기가 저장되었습니다!`);
+        }
     }
     localStorage.setItem('userEntries', JSON.stringify(userEntries));
     closeModal(); currentYear = y; currentMonth = m; selectedDay = d; timelineMode = 'selected';
