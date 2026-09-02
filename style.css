@@ -86,6 +86,7 @@ body {
 }
 
 .today-go-btn {
+    margin-left: 8px;
     background: #F0FDF4;
     color: var(--emerald-500);
     border: 1px solid #BBF7D0;
@@ -97,15 +98,102 @@ body {
     transition: all 0.2s;
 }
 
-.today-go-btn:hover {
+.today-go-btn:active {
     background: var(--emerald-500);
     color: white;
 }
 
 .metrics-group {
     display: flex;
+    align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+}
+
+/* 예산 사용률 미터 (같은 색조의 트랙+채움으로 표현하는 단일 비율 게이지) */
+.budget-meter {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.budget-meter svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.budget-meter-track {
+    fill: none;
+    stroke: #D9DDE0;
+    stroke-width: 7;
+    transition: stroke 0.3s ease;
+}
+
+.budget-meter-fill {
+    fill: none;
+    stroke: var(--indigo-600);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 163.36;
+    stroke-dashoffset: 163.36;
+    transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;
+}
+
+.budget-meter-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--indigo-600);
+}
+
+.budget-meter.risk .budget-meter-fill {
+    stroke: var(--coral-500);
+}
+
+.budget-meter.risk .budget-meter-text {
+    color: var(--coral-500);
+}
+
+/* 수입/지출 비율 도넛 (2구간 part-to-whole, 앱 전체에서 쓰는 emerald=수입/coral=지출 색을 그대로 사용) */
+.ie-meter {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.ie-meter svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.ie-meter-track {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 7;
+}
+
+.ie-meter-inc,
+.ie-meter-exp {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.4s ease, stroke-dashoffset 0.4s ease;
+}
+
+.ie-meter-inc {
+    stroke: var(--emerald-500);
+}
+
+.ie-meter-exp {
+    stroke: var(--coral-500);
 }
 
 .metric-pill {
@@ -114,6 +202,7 @@ body {
     border-radius: 12px;
     display: flex;
     align-items: center;
+    gap: 10px;
     border: 1px solid var(--border);
 }
 
@@ -163,8 +252,20 @@ body {
         flex: 1;
     }
 
+    .budget-meter,
+    .ie-meter {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+    }
+
+    .budget-meter-text {
+        font-size: 9px;
+    }
+
     .metric-pill {
         padding: 5px 8px;
+        gap: 6px;
         min-width: 0;
         flex: 1;
     }
@@ -558,6 +659,11 @@ body {
         font-size: 11px;
         padding: 0 2px;
     }
+
+    .tag-holiday {
+        font-size: 7px;
+        padding: 0 2px;
+    }
 }
 
 .cal-cell:hover {
@@ -633,6 +739,17 @@ body {
     background: var(--indigo-50);
     padding: 1px 4px;
     border-radius: 4px;
+    transition: font-size 0.25s ease, padding 0.25s ease;
+}
+
+.tag-holiday {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--coral-500);
+    background: #FFF1F2;
+    padding: 1px 4px;
+    border-radius: 4px;
+    white-space: nowrap;
     transition: font-size 0.25s ease, padding 0.25s ease;
 }
 

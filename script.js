@@ -8,8 +8,12 @@ let userBudgets = JSON.parse(localStorage.getItem('userBudgets')) || {};
 let userRecurring = JSON.parse(localStorage.getItem('userRecurring')) || [];
 let repeatOn = false;
 let editMode = null; // { type: 'ledger'|'diary', year, month, day, idx? }
+let holidayCache = JSON.parse(localStorage.getItem('holidayCache')) || {};
+let holidayLoading = {};
 
-const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '저축': '🐖', '적금': '📈', '주식': '📊', '월급': '💰', '성과금/보너스': '🏆', '금융소득': '💹', '수입': '💸', '기타': '📌' };
+const KASI_SERVICE_KEY = 'guZ+sfkrHqPkiPRFuTkzcobprODG79MslBF52S+NzW0HzdD1XAZnwIw/Tt+UkRzoUjvc+bx+mcEZQk+3DXhmIA==';
+
+const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '저축': '🐖', '적금': '🐖', '저축/적금': '🐖', '주식': '📊', '월급': '💰', '성과금/보너스': '🏆', '금융소득': '💹', '수입': '💸', '기타': '📌' };
 
 const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 function getWeekdayName(y, m, d) { return dayNames[new Date(y, m - 1, d).getDay()]; }
@@ -91,7 +95,35 @@ function prevMonth() { currentMonth--; if (currentMonth < 1) { currentMonth = 12
 function nextMonth() { currentMonth++; if (currentMonth > 12) { currentMonth = 1; currentYear++; } selectedDay = 1; renderAll(); }
 function goToToday() { const t = new Date(); currentYear = t.getFullYear(); currentMonth = t.getMonth() + 1; selectedDay = t.getDate(); renderAll(); }
 
+/* ===== 공휴일 (data.go.kr 특일 정보 API) ===== */
+async function fetchHolidays(year) {
+    const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&ServiceKey=${encodeURIComponent(KASI_SERVICE_KEY)}&_type=json&numOfRows=50`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data?.response?.body?.items?.item;
+    const list = items ? (Array.isArray(items) ? items : [items]) : [];
+    const map = {};
+    list.forEach(i => { if (i.isHoliday === 'Y') map[String(i.locdate)] = i.dateName.replace(/\(.*?\)/g, '').trim(); });
+    return map;
+}
+
+function ensureHolidaysLoaded(year) {
+    if (holidayCache[year] || holidayLoading[year]) return;
+    holidayLoading[year] = true;
+    fetchHolidays(year).then(map => {
+        holidayCache[year] = map;
+        localStorage.setItem('holidayCache', JSON.stringify(holidayCache));
+        holidayLoading[year] = false;
+        renderCalendar();
+    }).catch(err => {
+        console.error('공휴일 정보를 가져오지 못했습니다.', err);
+        holidayLoading[year] = false;
+    });
+}
+
 function renderCalendar() {
+    ensureHolidaysLoaded(currentYear);
+    const yearHolidays = holidayCache[currentYear] || {};
     const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
     const totalDays = new Date(currentYear, currentMonth, 0).getDate();
     const firstDow = new Date(currentYear, currentMonth - 1, 1).getDay();
@@ -103,14 +135,18 @@ function renderCalendar() {
         cell.className = `cal-cell ${d === selectedDay ? 'selected' : ''}`;
         cell.setAttribute('onclick', `selectDate(${d})`);
         const data = getMockData(currentYear, currentMonth, d);
+        const dateKey = `${currentYear}${String(currentMonth).padStart(2, '0')}${String(d).padStart(2, '0')}`;
+        const rawHolidayName = yearHolidays[dateKey];
+        const holidayName = rawHolidayName ? rawHolidayName.replace(/\(.*?\)/g, '').trim() : rawHolidayName;
         let infoHtml = '';
+        if (holidayName) infoHtml += `<span class="tag-holiday">${holidayName}</span>`;
         if (data) {
             if (data.exp) infoHtml += `<span class="tag-exp">${data.exp}</span>`;
             if (data.inc) infoHtml += `<span class="tag-inc">${data.inc}</span>`;
             if (data.diary) infoHtml += `<span class="tag-diary">${moodEmoji(data.diary.mood)}</span>`;
         }
         let ds = '';
-        if (dow === 0) ds = 'color:var(--coral-500);';
+        if (dow === 0 || holidayName) ds = 'color:var(--coral-500);';
         if (dow === 6) ds = 'color:var(--indigo-600);';
         const writeBtn = d === selectedDay
             ? `<button class="cal-write-btn" onclick="event.stopPropagation(); openModal()" title="기록 추가">✏️</button>`
@@ -325,6 +361,26 @@ function renderMetrics() {
 
     document.getElementById('metricValBalance').innerHTML = `<span style="color:var(--emerald-500);">+${totalInc.toLocaleString()}원</span> / <span style="color:var(--coral-500);">${totalExp > 0 ? '-' : ''}${totalExp.toLocaleString()}원</span>`;
 
+    const ieCircumference = 163.36; // 2 * PI * r(26)
+    const ieTotal = totalInc + totalExp;
+    const ieGap = 3; // 두 구간 사이 시각적 여백(arc 단위)
+    let incLen = 0, expLen = 0, expOffset = 0;
+    if (ieTotal > 0) {
+        const rawInc = (totalInc / ieTotal) * ieCircumference;
+        const rawExp = (totalExp / ieTotal) * ieCircumference;
+        const bothPresent = totalInc > 0 && totalExp > 0;
+        const g = bothPresent ? ieGap : 0;
+        incLen = Math.max(0, rawInc - g);
+        expLen = Math.max(0, rawExp - g);
+        expOffset = -rawInc;
+    }
+    const ieIncEl = document.getElementById('ieMeterInc');
+    const ieExpEl = document.getElementById('ieMeterExp');
+    ieIncEl.style.strokeDasharray = `${incLen} ${ieCircumference}`;
+    ieIncEl.style.strokeDashoffset = '0';
+    ieExpEl.style.strokeDasharray = `${expLen} ${ieCircumference}`;
+    ieExpEl.style.strokeDashoffset = `${expOffset}`;
+
     const budgetKey = `${currentYear}-${currentMonth}`;
     const budget = userBudgets[budgetKey] || 1000000;
 
@@ -334,6 +390,12 @@ function renderMetrics() {
     document.getElementById('metricLabelBudget').innerText = `${currentMonth}월 예산(${budgetText}) 사용률`;
     document.getElementById('metricValBudget').innerText = `${pct}% ${pct > 80 ? '(위험)' : '(안전)'}`;
     document.getElementById('metricValBudget').style.color = pct > 80 ? 'var(--coral-500)' : 'var(--indigo-600)';
+
+    const meterCircumference = 163.36; // 2 * PI * r(26)
+    const meterRatio = Math.max(0, Math.min(1, budget > 0 ? totalExp / budget : 0));
+    document.getElementById('budgetMeterFill').style.strokeDashoffset = `${meterCircumference * (1 - meterRatio)}`;
+    document.getElementById('budgetMeterText').textContent = `${pct}%`;
+    document.getElementById('budgetMeter').classList.toggle('risk', pct > 80);
 
     const catContainer = document.getElementById('categorySummaryContainer');
     if (totalExp === 0) {
@@ -499,8 +561,7 @@ const CATEGORIES = {
         { value: '보험료',   label: '🛡️ 보험료' },
         { value: '월세',     label: '🏢 월세' },
         { value: '관리비',   label: '🔑 관리비' },
-        { value: '저축',     label: '🐖 저축' },
-        { value: '적금',     label: '📈 적금' },
+        { value: '저축/적금', label: '🐖 저축/적금' },
         { value: '주식',     label: '📊 주식' },
         { value: '기타',     label: '📌 기타' },
     ],
