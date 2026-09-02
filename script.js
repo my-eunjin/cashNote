@@ -9,7 +9,7 @@ let userRecurring = JSON.parse(localStorage.getItem('userRecurring')) || [];
 let repeatOn = false;
 let editMode = null; // { type: 'ledger'|'diary', year, month, day, idx? }
 
-const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '저축': '🐖', '적금': '📈', '주식': '📊', '월급': '💰', '수입': '💸', '기타': '📌' };
+const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '저축': '🐖', '적금': '📈', '주식': '📊', '월급': '💰', '성과금/보너스': '🏆', '금융소득': '💹', '수입': '💸', '기타': '📌' };
 
 const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 function getWeekdayName(y, m, d) { return dayNames[new Date(y, m - 1, d).getDay()]; }
@@ -506,6 +506,8 @@ const CATEGORIES = {
     ],
     inc: [
         { value: '월급',  label: '💰 월급' },
+        { value: '성과금/보너스',  label: '🏆 성과금/보너스' },
+        { value: '금융소득',  label: '💹 금융소득' },
         { value: '수입',  label: '💸 수입' },
         { value: '기타',  label: '📌 기타' },
     ]
