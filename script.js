@@ -13,7 +13,7 @@ let holidayLoading = {};
 
 const KASI_SERVICE_KEY = 'guZ+sfkrHqPkiPRFuTkzcobprODG79MslBF52S+NzW0HzdD1XAZnwIw/Tt+UkRzoUjvc+bx+mcEZQk+3DXhmIA==';
 
-const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '저축': '🐖', '적금': '🐖', '저축/적금': '🐖', '주식': '📊', '월급': '💰', '성과금/보너스': '🏆', '금융소득': '💹', '수입': '💸', '기타': '📌' };
+const CAT_ICONS = { '식비': '🍚', '교통': '🚇', '문화/여가': '🎭', '문화': '🎭', '쇼핑': '🛒', '생활비': '🏠', '생활': '🏠', '의료': '➕', '핸드폰요금': '📱', '통신비': '📱', '보험료': '🛡️', '월세': '🏢', '관리비': '🔑', '공과금': '💡', '세금': '🏛️', '저축': '🐖', '적금': '🐖', '저축/적금': '🐖', '주식': '📊', '월급': '💰', '성과금/보너스': '🏆', '금융소득': '💹', '수입': '💸', '기타': '📌' };
 
 const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 function getWeekdayName(y, m, d) { return dayNames[new Date(y, m - 1, d).getDay()]; }
@@ -56,6 +56,7 @@ function getRecurringItems(y, m, d) {
         out.push({
             icon: CAT_ICONS[cate] || '📌', name, cate, amount, type,
             val: amountToVal(amount, type),
+            memo: rule.memo,
             recurringId: rule.id,
             edited: ov.amount != null || ov.name != null || ov.type != null
         });
@@ -207,7 +208,8 @@ function renderDayHtml(day) {
             const actions = i.recurringId
                 ? `<button class="icon-btn" onclick="event.stopPropagation(); openRecurringModal('${i.recurringId}', ${day})" title="반복 항목 수정">✏️</button>`
                 : `<button class="icon-btn" onclick="event.stopPropagation(); openEditLedger(${day}, ${i._idx})" title="수정">✏️</button><button class="icon-btn" onclick="event.stopPropagation(); deleteLedger(${day}, ${i._idx})" title="삭제">🗑️</button>`;
-            return `<div class="entry-item"><div class="entry-left"><span class="entry-icon">${i.icon}</span><div><div class="entry-name">${i.name}${badge}</div><div class="entry-cate">${i.cate}</div></div></div><div style="display:flex;align-items:center;gap:12px;"><span class="entry-val" style="color:${i.type === 'inc' ? 'var(--emerald-500)' : 'var(--coral-500)'};">${i.val}</span>${actions}</div></div>`;
+            const memoHtml = i.memo ? `<div class="entry-memo">📝 ${i.memo}</div>` : '';
+            return `<div class="entry-item"><div class="entry-left"><span class="entry-icon">${i.icon}</span><div><div class="entry-name">${i.name}${badge}</div><div class="entry-cate">${i.cate}</div>${memoHtml}</div></div><div style="display:flex;align-items:center;gap:12px;"><span class="entry-val" style="color:${i.type === 'inc' ? 'var(--emerald-500)' : 'var(--coral-500)'};">${i.val}</span>${actions}</div></div>`;
         }).join('');
     }
     if ((activeFilter === 'all' || activeFilter === 'diary') && data.diary) {
@@ -557,10 +559,12 @@ const CATEGORIES = {
         { value: '쇼핑',     label: '🛒 쇼핑' },
         { value: '생활비',   label: '🏠 생활비' },
         { value: '의료',     label: '➕ 의료' },
-        { value: '핸드폰요금', label: '📱 핸드폰요금' },
+        { value: '통신비',   label: '📱 통신비' },
         { value: '보험료',   label: '🛡️ 보험료' },
         { value: '월세',     label: '🏢 월세' },
         { value: '관리비',   label: '🔑 관리비' },
+        { value: '공과금',   label: '💡 공과금' },
+        { value: '세금',     label: '🏛️ 세금' },
         { value: '저축/적금', label: '🐖 저축/적금' },
         { value: '주식',     label: '📊 주식' },
         { value: '기타',     label: '📌 기타' },

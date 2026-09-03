@@ -22,13 +22,14 @@
     <div class="dash-wrapper">
         <!-- Header -->
         <header class="dash-header">
-            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-                <div class="month-nav">
+            <div class="month-nav">
+                <span class="month-nav-spacer" aria-hidden="true"></span>
+                <div class="month-nav-center">
                     <button class="month-nav-btn" onclick="prevMonth()">◀</button>
                     <span class="month-label" id="currentYearMonthText">2026년 8월</span>
                     <button class="month-nav-btn" onclick="nextMonth()">▶</button>
-                    <button class="today-go-btn" onclick="goToToday()">TODAY</button>
                 </div>
+                <button class="today-go-btn" onclick="goToToday()">TODAY</button>
             </div>
             <div class="metrics-group">
                 <div class="metric-pill" onclick="setBudget()" style="cursor:pointer;" title="클릭하여 예산 설정">
@@ -94,7 +95,7 @@
         <div class="dash-body">
             <!-- Left -->
             <div>
-                <div class="dash-card">
+                <div class="dash-card cal-card">
                     <div class="cal-table-head">
                         <span style="color:var(--coral-500);">일</span>
                         <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span>
@@ -165,7 +166,7 @@
                         <div class="form-group"><label class="form-label">날짜</label><input class="form-input"
                                 type="date" id="ledgerDate"></div>
                         <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input"
-                                type="number" id="ledgerAmount" placeholder="15000"></div>
+                                type="number" id="ledgerAmount"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">반복 설정</label>
@@ -214,9 +215,9 @@
                         </div>
                     </div>
                     <div class="form-group"><label class="form-label">내용 / 사용처</label><input class="form-input"
-                            type="text" id="ledgerTitle" placeholder="스타벅스 아이스 아메리카노"></div>
+                            type="text" id="ledgerTitle"></div>
                     <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input"
-                            type="text" id="ledgerMemo" placeholder="간단한 메모"></div>
+                            type="text" id="ledgerMemo"></div>
                 </div>
 
                 <!-- Diary Form -->
