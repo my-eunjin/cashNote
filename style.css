@@ -1051,6 +1051,21 @@ body {
     font-weight: 600;
 }
 
+.custom-select-group-label {
+    padding: 8px 12px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    pointer-events: none;
+    user-select: none;
+}
+
+.custom-select-group-label:not(:first-child) {
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;
