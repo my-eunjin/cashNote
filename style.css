@@ -267,8 +267,8 @@ body {
     .today-go-btn {
         justify-self: end;
         margin-left: 0;
-        padding: 4px 8px;
-        font-size: 10px;
+        padding: 6px 12px;
+        font-size: 12px;
     }
 
     .metrics-group {
