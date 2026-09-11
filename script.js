@@ -579,10 +579,10 @@ const CATEGORIES = {
             { value: '쇼핑',       label: '🛒 쇼핑' },
             { value: '생활비',     label: '🏠 생활비' },
             { value: '문화/여가', label: '🎭 문화/여가' },
+            { value: '여행/숙박', label: '✈️ 여행/숙박' },
             { value: '의료비',     label: '➕ 의료비' },
             { value: '교육비',     label: '📚 교육비' },
             { value: '운동/피트니스', label: '🏋️ 운동/피트니스' },
-            { value: '여행/숙박', label: '✈️ 여행/숙박' },
         ]},
         { group: '자산관리', items: [
             { value: '저축/적금', label: '🐖 저축/적금' },
