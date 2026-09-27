@@ -1,6 +1,6 @@
 const _today = new Date();
 let currentYear = _today.getFullYear(), currentMonth = _today.getMonth() + 1, selectedDay = _today.getDate();
-let activeFilter = 'all', timelineMode = 'selected';
+let activeFilter = 'all', timelineMode = 'selected', activeCatTab = 'exp';
 let selectedMood = '😊 행복', selectedType = 'exp';
 let currentTags = [];
 let userEntries = JSON.parse(localStorage.getItem('userEntries')) || {};
@@ -356,7 +356,7 @@ function openEditDiary(day, idx) {
 
 function renderMetrics() {
     let totalExp = 0; let totalInc = 0;
-    let catExp = {};
+    let catExp = {}; let catInc = {};
     const totalDays = new Date(currentYear, currentMonth, 0).getDate();
     for (let d = 1; d <= totalDays; d++) {
         getLedgerItems(currentYear, currentMonth, d).forEach(i => {
@@ -367,11 +367,13 @@ function renderMetrics() {
                 catExp[catKey] = (catExp[catKey] || 0) + num;
             } else {
                 totalInc += num;
+                const catKey = `${i.icon} ${i.cate}`;
+                catInc[catKey] = (catInc[catKey] || 0) + num;
             }
         });
     }
 
-    document.getElementById('metricValBalance').innerHTML = `<span style="color:var(--emerald-500);">+${totalInc.toLocaleString()}원</span> / <span style="color:var(--coral-500);">${totalExp > 0 ? '-' : ''}${totalExp.toLocaleString()}원</span>`;
+    document.getElementById('metricValBalance').innerHTML = `<span style="color:var(--emerald-500);">+${totalInc.toLocaleString()}원</span> / <span style="color:var(--coral-500);">${ totalExp > 0 ? '-' : ''}${totalExp.toLocaleString()}원</span>`;
 
     const ieCircumference = 163.36; // 2 * PI * r(26)
     const ieTotal = totalInc + totalExp;
@@ -409,20 +411,41 @@ function renderMetrics() {
     document.getElementById('budgetMeterText').textContent = `${pct}%`;
     document.getElementById('budgetMeter').classList.toggle('risk', pct > 80);
 
+    renderCatSummary(catExp, catInc);
+}
+
+function renderCatSummary(catExp, catInc) {
     const catContainer = document.getElementById('categorySummaryContainer');
-    if (totalExp === 0) {
-        catContainer.innerHTML = `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px;">지출 내역이 없습니다.</div>`;
+    const isExp = activeCatTab === 'exp';
+    const catData = isExp ? catExp : catInc;
+    const total = isExp
+        ? Object.values(catExp).reduce((a, b) => a + b, 0)
+        : Object.values(catInc).reduce((a, b) => a + b, 0);
+    const emptyMsg = isExp ? '지출 내역이 없습니다.' : '수입 내역이 없습니다.';
+    const barColor = isExp ? 'var(--coral-500)' : 'var(--emerald-500)';
+    const colors = isExp
+        ? ['var(--coral-500)', 'var(--indigo-600)', 'var(--amber-500)', 'var(--emerald-500)']
+        : ['var(--emerald-500)', 'var(--indigo-600)', 'var(--amber-500)', 'var(--coral-500)'];
+
+    if (total === 0) {
+        catContainer.innerHTML = `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px;">${emptyMsg}</div>`;
     } else {
         let catHtml = '';
-        const colors = ['var(--indigo-600)', 'var(--amber-500)', 'var(--coral-500)', 'var(--emerald-500)'];
         let cIdx = 0;
-        Object.entries(catExp).sort((a, b) => b[1] - a[1]).forEach(([name, val]) => {
-            const perc = Math.round((val / totalExp) * 100);
+        Object.entries(catData).sort((a, b) => b[1] - a[1]).forEach(([name, val]) => {
+            const perc = Math.round((val / total) * 100);
             catHtml += `<div class="cat-bar-item"><div class="cat-bar-header"><span>${name}</span><span>${val.toLocaleString()}원 (${perc}%)</span></div><div class="cat-progress"><div class="cat-fill" style="width:${perc}%;background:${colors[cIdx % colors.length]};"></div></div></div>`;
             cIdx++;
         });
         catContainer.innerHTML = catHtml;
     }
+}
+
+function switchCatTab(tab) {
+    activeCatTab = tab;
+    document.getElementById('catTabExp').classList.toggle('active', tab === 'exp');
+    document.getElementById('catTabInc').classList.toggle('active', tab === 'inc');
+    renderMetrics();
 }
 
 function setBudget() {

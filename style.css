@@ -553,12 +553,82 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
 }
 
 .card-title {
     font-size: 16px;
     font-weight: 700;
+}
+
+/* ===== 카테고리 요약 탭 (지출 / 수입) ===== */
+.cat-tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--bg-body);
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.cat-tab {
+    flex: 1;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    white-space: nowrap;
+}
+
+.cat-tab.active {
+    background: var(--bg-surface);
+    color: var(--indigo-600);
+    font-weight: 700;
+    box-shadow: 0 1px 6px rgba(79, 70, 229, 0.12);
+}
+
+/* 지출 탭 활성 강조 */
+#catTabExp.active {
+    color: var(--coral-500);
+    box-shadow: 0 1px 6px rgba(244, 63, 94, 0.13);
+}
+
+/* 수입 탭 활성 강조 */
+#catTabInc.active {
+    color: var(--emerald-500);
+    box-shadow: 0 1px 6px rgba(16, 185, 129, 0.13);
+}
+
+/* 카테고리 바 아이템 */
+.cat-bar-item {
+    margin-bottom: 10px;
+}
+
+.cat-bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.cat-progress {
+    height: 8px;
+    background: var(--bg-body);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.cat-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cal-table-head {
